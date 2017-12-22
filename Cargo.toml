@@ -5,3 +5,5 @@ authors = ["David Baynard <davidbaynard@gmail.com>"]
 
 [dependencies]
 lopdf = "0.14.1"
+num = "0.1.41"
+num-derive = "0.1.41"
