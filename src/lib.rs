@@ -87,17 +87,17 @@ fn get_leaves(pages: &NonZero<u32>) -> u32 {
 #[cfg(test)]
 mod test_get_leaves {
     use super::*;
+    use quickcheck::TestResult;
 
     quickcheck! {
-        fn prop_exact_leaves_correct(x: u32) -> bool {
-            let y: Option<NonZero<u32>> = NonZero::new(x / 4);
-            let y = match y {
+        fn prop_exact_leaves_correct(x: u32) -> TestResult {
+            let y = (4 - x % 4) % 4;
+            let x = match NonZero::new(x) {
                 Some(r) => r,
-                None => NonZero::NonZero(1),
+                None => return TestResult::discard(),
             };
-            let z = get_leaves(&y);
-            println!("{:?}, {:?}", y.ex(), z);
-            *y.ex() == z
+            let z = 4 * get_leaves(&x) - y;
+            TestResult::from_bool(*x.ex() == z)
         }
     }
 }
