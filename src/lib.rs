@@ -33,26 +33,28 @@ struct PageProps {
     blanks: OnLeaf,
 }
 
-fn mk_page_props(pages: &NonZero<u32>) -> PageProps {
-    use num::FromPrimitive;
+impl PageProps {
+    fn new(pages: &NonZero<u32>) -> PageProps {
+        use num::FromPrimitive;
 
-    // round up for the sheets of paper used
-    let leaves = get_leaves(&pages);
+        // round up for the sheets of paper used
+        let leaves = get_leaves(&pages);
 
-    // four pages per leaf
-    let new_pages = leaves * 4;
+        // four pages per leaf
+        let new_pages = leaves * 4;
 
-    // The first page is the middle face, LHS
-    let start_page = leaves * 2;
+        // The first page is the middle face, LHS
+        let start_page = leaves * 2;
 
-    let blanks = FromPrimitive::from_u32(pages.ex() % 4)
-        .expect("This cannot fail");
+        let blanks = FromPrimitive::from_u32(pages.ex() % 4)
+            .expect("This cannot fail");
 
-    PageProps {
-        leaves,
-        new_pages,
-        start_page,
-        blanks,
+        PageProps {
+            leaves,
+            new_pages,
+            start_page,
+            blanks,
+        }
     }
 }
 
@@ -61,15 +63,15 @@ enum NonZero<T> {
     NonZero(T),
 }
 
-fn mk_non_zero<T: Unsigned>(u: T) -> Option<NonZero<T>> {
-    if u.is_zero() {
-        None
-    } else {
-        Some(NonZero::NonZero(u))
+impl<T: Unsigned> NonZero<T> {
+    fn new(u: T) -> Option<NonZero<T>> {
+        if u.is_zero() {
+            None
+        } else {
+            Some(NonZero::NonZero(u))
+        }
     }
-}
 
-impl<T> NonZero<T> {
     fn ex(&self) -> &T {
         use NonZero::NonZero;
         match self {
@@ -88,10 +90,10 @@ mod test_get_leaves {
 
     quickcheck! {
         fn prop_exact_leaves_correct(x: u32) -> bool {
-            use NonZero::NonZero;
-            let y = match mk_non_zero(x / 4) {
+            let y: Option<NonZero<u32>> = NonZero::new(x / 4);
+            let y = match y {
                 Some(r) => r,
-                None => NonZero(1),
+                None => NonZero::NonZero(1),
             };
             let z = get_leaves(&y);
             println!("{:?}, {:?}", y.ex(), z);
