@@ -56,6 +56,20 @@ impl PageProps {
             blanks,
         }
     }
+
+    pub fn new_page_no(&self, page: u32) -> u32 {
+        let half = if page > self.leaves * 2 {
+            Half::Former
+        } else {
+            Half::Latter
+        };
+        new_page_no(
+            self.blanks,
+            self.leaves,
+            half,
+            page,
+            )
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -77,6 +91,16 @@ impl<T: Unsigned> NonZero<T> {
 
 fn get_leaves(pages: &NonZero<u32>) -> u32 {
     (pages.ex() - 1) / 4 + 1
+}
+
+fn new_page_no(blanks: OnLeaf, leaves: u32, half: Half, page: u32) -> u32 {
+    match (half, page % 2) {
+        (Former,0) => 4 * leaves - page,
+        (Latter,0) => 4 * leaves - page - 1,
+        (Former,1) => page - 1,
+        (Latter,1) => page + 1,
+        (_,_) => panic!("The impossible has happened.")
+    }
 }
 
 #[cfg(test)]
