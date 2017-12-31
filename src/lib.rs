@@ -59,24 +59,19 @@ impl PageProps {
 }
 
 #[derive(Debug, PartialEq)]
-enum NonZero<T> {
-    NonZero(T),
-}
+struct NonZero<T>(T);
 
 impl<T: Unsigned> NonZero<T> {
     fn new(u: T) -> Option<NonZero<T>> {
         if u.is_zero() {
             None
         } else {
-            Some(NonZero::NonZero(u))
+            Some(NonZero(u))
         }
     }
 
     fn ex(&self) -> &T {
-        use NonZero::NonZero;
-        match self {
-            &NonZero(ref t) => t,
-        }
+        &self.0
     }
 }
 
