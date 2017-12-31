@@ -57,13 +57,13 @@ impl PageProps {
         }
     }
 
-    pub fn new_page_no(&self, page: u32) -> u32 {
+    pub fn next_page_no(&self, page: u32) -> u32 {
         let half = if page > self.leaves * 2 {
-            Half::Former
-        } else {
             Half::Latter
+        } else {
+            Half::Former
         };
-        new_page_no(
+        next_page_no(
             self.blanks,
             self.leaves,
             half,
@@ -93,9 +93,9 @@ fn get_leaves(pages: &NonZero<u32>) -> u32 {
     (pages.ex() - 1) / 4 + 1
 }
 
-fn new_page_no(blanks: OnLeaf, leaves: u32, half: Half, page: u32) -> u32 {
+fn next_page_no(blanks: OnLeaf, leaves: u32, half: Half, page: u32) -> u32 {
     match (half, page % 2) {
-        (Former,0) => 4 * leaves - page,
+        (Former,0) => 4 * leaves - page + 1,
         (Latter,0) => 4 * leaves - page - 1,
         (Former,1) => page - 1,
         (Latter,1) => page + 1,
