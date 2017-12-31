@@ -12,7 +12,7 @@ use num::Unsigned;
 use num::Zero;
 use lopdf::Document;
 
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, FromPrimitive, Clone, Copy)]
 enum OnLeaf {
     Nil,
     One,
