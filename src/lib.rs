@@ -26,7 +26,7 @@ enum Half {
     Latter,
 }
 #[derive(Debug)]
-struct PageProps {
+pub struct PageProps {
     leaves: u32,
     new_pages: u32,
     start_page: u32,
@@ -34,7 +34,7 @@ struct PageProps {
 }
 
 impl PageProps {
-    fn new(pages: &NonZero<u32>) -> PageProps {
+    pub fn new(pages: &NonZero<u32>) -> PageProps {
         use num::FromPrimitive;
 
         // round up for the sheets of paper used
@@ -59,10 +59,10 @@ impl PageProps {
 }
 
 #[derive(Debug, PartialEq)]
-struct NonZero<T>(T);
+pub struct NonZero<T>(T);
 
 impl<T: Unsigned> NonZero<T> {
-    fn new(u: T) -> Option<NonZero<T>> {
+    pub fn new(u: T) -> Option<NonZero<T>> {
         if u.is_zero() {
             None
         } else {
