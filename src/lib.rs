@@ -12,7 +12,7 @@ use num::Unsigned;
 use num::Zero;
 use lopdf::Document;
 
-#[derive(Debug, FromPrimitive, Clone, Copy)]
+#[derive(Debug, FromPrimitive, ToPrimitive, Clone, Copy, PartialEq)]
 enum OnLeaf {
     Nil,
     One,
@@ -123,6 +123,22 @@ mod test_get_leaves {
             };
             let z = 4 * get_leaves(&x) - y;
             TestResult::from_bool(*x.ex() == z)
+        }
+    }
+
+    quickcheck! {
+        fn prop_onleaf_new(x: u32) -> TestResult {
+            use num::ToPrimitive;
+
+            let once = OnLeaf::new(x);
+            let back = match once.to_u32() {
+                Some(r) => x,
+                None => return TestResult::discard(),
+            };
+
+            let twice = OnLeaf::new(back);
+
+            TestResult::from_bool(once == twice)
         }
     }
 }
