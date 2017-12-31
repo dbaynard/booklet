@@ -20,6 +20,15 @@ enum OnLeaf {
     Three,
 }
 
+impl OnLeaf {
+    fn new(x: u32) -> OnLeaf {
+        use num::FromPrimitive;
+
+        FromPrimitive::from_u32((4 - x % 4) % 4)
+            .expect("This cannot fail")
+    }
+}
+
 #[derive(Debug)]
 enum Half {
     Former,
@@ -35,8 +44,6 @@ pub struct PageProps {
 
 impl PageProps {
     pub fn new(pages: &NonZero<u32>) -> PageProps {
-        use num::FromPrimitive;
-
         // round up for the sheets of paper used
         let leaves = get_leaves(&pages);
 
@@ -46,8 +53,7 @@ impl PageProps {
         // The first page is the middle face, LHS
         let start_page = leaves * 2;
 
-        let blanks = FromPrimitive::from_u32(pages.ex() % 4)
-            .expect("This cannot fail");
+        let blanks = OnLeaf::new(*pages.ex());
 
         PageProps {
             leaves,
