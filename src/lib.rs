@@ -153,5 +153,12 @@ mod test_get_leaves {
         assert_eq!(09, test_ps.next_page_no(12));
         assert_eq!(08, test_ps.next_page_no(09));
         assert_eq!(13, test_ps.next_page_no(08));
+
+        let pages0: Vec<u32> = vec![10,11,12,9,8,13,14,7,6,15,16,5,4,17,18,3,2,19,1];
+        let pages1: Vec<u32> = vec![11,12,9,8,13,14,7,6,15,16,5,4,17,18,3,2,19,20,0];
+        let next_pages: Vec<u32> = pages0.iter()
+            .map(|x| test_ps.next_page_no(*x)).collect();
+
+        assert_eq!(pages1, next_pages);
     }
 }
