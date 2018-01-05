@@ -64,14 +64,14 @@ impl PageProps {
     }
 
     pub fn next_page_no(&self, page: u32) -> u32 {
-        let half = if page > self.leaves * 2 {
+        let half = if page > self.start_page {
             Half::Latter
         } else {
             Half::Former
         };
         next_page_no(
             self.blanks,
-            self.leaves,
+            self.new_pages,
             half,
             page,
             )
@@ -99,10 +99,12 @@ fn get_leaves(pages: &NonZero<u32>) -> u32 {
     (pages.ex() - 1) / 4 + 1
 }
 
-fn next_page_no(blanks: OnLeaf, leaves: u32, half: Half, page: u32) -> u32 {
+fn next_page_no(blanks: OnLeaf, pages: u32, half: Half, page: u32) -> u32 {
+    use Half::*;
+
     match (half, page % 2) {
-        (Former,0) => 4 * leaves - page + 1,
-        (Latter,0) => 4 * leaves - page - 1,
+        (Former,0) => pages - page + 1,
+        (Latter,0) => pages - page + 1,
         (Former,1) => page - 1,
         (Latter,1) => page + 1,
         (_,_) => panic!("The impossible has happened.")
