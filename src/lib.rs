@@ -141,4 +141,15 @@ mod test_get_leaves {
             TestResult::from_bool(once == twice)
         }
     }
+
+    #[test]
+    fn test_next_page() {
+        let test_ps = PageProps::new(&NonZero(19));
+
+        assert_eq!(11, test_ps.next_page_no(10));
+        assert_eq!(12, test_ps.next_page_no(11));
+        assert_eq!(09, test_ps.next_page_no(12));
+        assert_eq!(08, test_ps.next_page_no(09));
+        assert_eq!(13, test_ps.next_page_no(08));
+    }
 }
