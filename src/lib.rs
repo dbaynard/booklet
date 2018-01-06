@@ -9,6 +9,8 @@ extern crate num;
 extern crate num_derive;
 
 use lopdf::Document;
+use lopdf::Object;
+use lopdf::Dictionary;
 use std::io;
 use std::io::ErrorKind::*;
 
@@ -28,11 +30,22 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     po.for_each(|r| {
         match r {
             None => {
-                println!("Blank");
+                if let Some(blank) = in_pages.get(&1)
+                    .and_then(|&x| doc.get_object(x))
+                    .and_then(Object::as_dict)
+                    .map(Dictionary::clone)
+                    .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
+                {
+                    let blank_id = doc.add_object(blank);
+                    println!("{:?}", blank_id);
+                    //blank_id
+                }
             },
             Some(r) => {
-                if let Some(x) = in_pages.get_mut(&r) {
-                    println!("{:?}", doc.get_object(*x));
+                if let Some(&page_id) = in_pages.get(&r)
+                {
+                    println!("{:?}", page_id);
+                    //page_id
                 }
             },
         }
