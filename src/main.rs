@@ -1,6 +1,8 @@
 extern crate booklet;
 
-use booklet::{NonZero,PageProps};
+use booklet::*;
+use std::io;
+use std::io::ErrorKind::*;
 
 fn main() {
     match test_pages() {
@@ -9,11 +11,11 @@ fn main() {
     }
 }
 
-fn test_pages() -> Result<(), &'static str> {
-    let ps = NonZero::new(19).ok_or("Is zero")?;
+fn test_pages() -> Result<(), io::Error> {
+    let ps = NonZero::new(27).ok_or(nonzeroError())?;
     let pp = PageProps::new(&ps);
     let po = pp.print_order();
 
     println!("{:?}", po.collect::<Vec<_>>());
-    Ok(())
+    reorder("test.pdf")
 }
