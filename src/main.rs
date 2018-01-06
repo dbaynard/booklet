@@ -14,6 +14,6 @@ fn test_pages() -> Result<(), &'static str> {
     let pp = PageProps::new(&ps);
     let mut pl = PageList::new(&pp);
 
-    println!("{:?}", pl.next());
+    println!("{:?}", pl.collect::<Vec<u32>>());
     Ok(())
 }
