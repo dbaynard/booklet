@@ -76,6 +76,28 @@ impl PageProps {
             page,
             )
     }
+
+    pub fn print_order<F>(&self) -> PageList
+    {
+        PageList(self.start_page, self)
+    }
+}
+
+#[derive(Debug)]
+pub struct PageList<'a>(u32, &'a PageProps);
+
+impl<'a> Iterator for PageList<'a> {
+    type Item = u32;
+
+    fn next(&mut self) -> Option<u32> {
+        self.0 = self.1.next_page_no(self.0);
+
+        if self.0 == 0 {
+            return None;
+        };
+
+        Some(self.0)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -160,5 +182,14 @@ mod test_get_leaves {
             .map(|x| test_ps.next_page_no(*x)).collect();
 
         assert_eq!(pages1, next_pages);
+    }
+
+    #[test]
+    fn test_gen_pages() {
+        let test_ps = PageProps::new(&NonZero(19));
+        assert_eq!(
+            vec![10,11,12,9,8,13,14,7,6,15,16,5,4,17,18,3,2,19,20,1],
+            PageList(10, &test_ps).collect::<Vec<u32>>()
+        )
     }
 }
