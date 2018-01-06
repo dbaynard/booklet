@@ -79,24 +79,39 @@ impl PageProps {
 
     pub fn print_order<F>(&self) -> PageList
     {
-        PageList(self.start_page, self)
+        PageList::new(self)
     }
 }
 
 #[derive(Debug)]
-pub struct PageList<'a>(u32, &'a PageProps);
+pub struct PageList<'a>(Option<u32>, &'a PageProps);
+
+impl<'a> PageList<'a> {
+    pub fn new(pp: &'a PageProps) -> PageList<'a> {
+        PageList(None, pp)
+    }
+}
 
 impl<'a> Iterator for PageList<'a> {
     type Item = u32;
 
     fn next(&mut self) -> Option<u32> {
-        self.0 = self.1.next_page_no(self.0);
+        match self.0 {
+            None => {
+                self.0 = Some(self.1.start_page);
+            }
+            Some(r) => {
+                let x = self.1.next_page_no(r);
 
-        if self.0 == 0 {
-            return None;
+                if x == 0 {
+                    return None;
+                };
+
+                self.0 = Some(x);
+            },
         };
 
-        Some(self.0)
+        self.0
     }
 }
 
@@ -156,7 +171,7 @@ mod test_get_leaves {
 
             let once = OnLeaf::new(x);
             let back = match once.to_u32() {
-                Some(r) => x,
+                Some(_r) => x,
                 None => return TestResult::discard(),
             };
 
@@ -189,7 +204,7 @@ mod test_get_leaves {
         let test_ps = PageProps::new(&NonZero(19));
         assert_eq!(
             vec![10,11,12,9,8,13,14,7,6,15,16,5,4,17,18,3,2,19,20,1],
-            PageList(10, &test_ps).collect::<Vec<u32>>()
+            PageList::new(&test_ps).collect::<Vec<u32>>()
         )
     }
 }
