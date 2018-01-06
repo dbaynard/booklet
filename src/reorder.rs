@@ -71,9 +71,9 @@ impl PageProps {
             )
     }
 
-    pub fn print_order<F>(&self) -> PageList
+    pub fn print_order<'a>(&'a self) -> Box<Iterator<Item = Option<u32>> + 'a>
     {
-        PageList::new(self)
+        PageList::new(self).print_order()
     }
 }
 

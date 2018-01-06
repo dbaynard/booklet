@@ -12,8 +12,8 @@ fn main() {
 fn test_pages() -> Result<(), &'static str> {
     let ps = NonZero::new(19).ok_or("Is zero")?;
     let pp = PageProps::new(&ps);
-    let mut pl = PageList::new(&pp);
+    let po = pp.print_order();
 
-    println!("{:?}", pl.collect::<Vec<u32>>());
+    println!("{:?}", po.collect::<Vec<_>>());
     Ok(())
 }
