@@ -1,5 +1,6 @@
 use num::Unsigned;
 use num::Zero;
+use std::iter::Map;
 
 #[derive(Debug, FromPrimitive, ToPrimitive, Clone, Copy, PartialEq)]
 enum OnLeaf {
@@ -26,15 +27,18 @@ enum Half {
 #[derive(Debug)]
 pub struct PageProps {
     leaves: u32,
+    pages: u32,
     new_pages: u32,
     start_page: u32,
     blanks: OnLeaf,
 }
 
 impl PageProps {
-    pub fn new(pages: &NonZero<u32>) -> PageProps {
+    pub fn new(pgs: &NonZero<u32>) -> PageProps {
+        let pages = *pgs.ex();
+
         // round up for the sheets of paper used
-        let leaves = get_leaves(&pages);
+        let leaves = get_leaves(&pgs);
 
         // four pages per leaf
         let new_pages = leaves * 4;
@@ -42,10 +46,11 @@ impl PageProps {
         // The first page is the middle face, LHS
         let start_page = leaves * 2;
 
-        let blanks = OnLeaf::new(*pages.ex());
+        let blanks = OnLeaf::new(pages);
 
         PageProps {
             leaves,
+            pages,
             new_pages,
             start_page,
             blanks,
@@ -78,6 +83,22 @@ pub struct PageList<'a>(Option<u32>, &'a PageProps);
 impl<'a> PageList<'a> {
     pub fn new(pp: &'a PageProps) -> PageList<'a> {
         PageList(None, pp)
+    }
+
+    // No need for boxes, but can't be implemented yet
+    //pub fn print_order<F>(self) -> impl Iterator<Item = Option<u32>>
+    pub fn print_order(self) -> Box<Iterator<Item = Option<u32>> + 'a>
+    {
+        let p = &self.1.pages;
+        let f = self.map(move |x| {
+            if x > *p {
+                None
+            } else {
+                Some(x)
+            }
+        });
+
+        Box::new(f)
     }
 }
 
@@ -194,6 +215,36 @@ mod test_get_leaves {
         assert_eq!(
             vec![10,11,12,9,8,13,14,7,6,15,16,5,4,17,18,3,2,19,20,1],
             PageList::new(&test_ps).collect::<Vec<u32>>()
+        )
+    }
+
+    #[test]
+    fn test_print_order() {
+        let test_ps = PageProps::new(&NonZero(19));
+        let test_out = PageList::new(&test_ps).print_order().collect::<Vec<_>>();
+        assert_eq!(
+            vec![
+                Some(10),
+                Some(11),
+                Some(12),
+                Some(9),
+                Some(8),
+                Some(13),
+                Some(14),
+                Some(7),
+                Some(6),
+                Some(15),
+                Some(16),
+                Some(5),
+                Some(4),
+                Some(17),
+                Some(18),
+                Some(3),
+                Some(2),
+                Some(19),
+                None,
+                Some(1)],
+            test_out
         )
     }
 }
