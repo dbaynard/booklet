@@ -61,6 +61,14 @@ fn rewrite_pages(doc: &mut Document, pp: &PageProps) -> Result<(), io::Error> {
         .map(|_| Object::Integer(pp.new_pages() as i64))
         .ok_or(invalid("Couldn’t find ‘Count’ key"))?;
 
+    pages_dict.get("Kids")
+        .and_then(Object::as_array)
+        .map(|v| v.iter()
+            .filter_map(Object::as_reference)
+            .zip((1..))
+             )
+        .ok_or(invalid("Couldn’t find ‘Kids’ key"))?;
+
     Ok(())
 }
 
