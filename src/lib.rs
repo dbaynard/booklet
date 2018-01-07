@@ -27,41 +27,39 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
         .map(|x| PageProps::new(&x))
         .ok_or(nonzero_error())?;
 
-    // TODO Need to get typechecker to enforce this is called
-    rewrite_pages(&mut doc, &pp, &in_pages)?;
+    rewrite_pages(doc, &pp, &in_pages)?;
 
     Ok(())
 }
 
-fn rewrite_pages(doc: &mut Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
-    //TODO Reference counting?
-    //let po = generate_pages(&mut doc, &pp, &in_pages);
+fn rewrite_pages(mut doc: Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
 
-    let pages_loc = pages_location(&doc)
-        .ok_or(invalid("Couldn’t find ‘Pages’ location"))?;
-
-    let pages_dict = doc.get_object(pages_loc)
-        .and_then(Object::as_dict)
+    let mut pages_dict = pages_location(&doc)
         .ok_or(invalid("Couldn’t find ‘Pages’ dictionary"))?;
 
-    pages_dict.get("Count")
-        .iter().filter(
-            |x| x.as_i64().is_some()
-            ).next()
-        .map(|_| Object::Integer(pp.new_pages() as i64))
-        .ok_or(invalid("Couldn’t find ‘Count’ key"))?;
+    pages_dict.set(
+        "Count",
+        Object::Integer(pp.new_pages() as i64),
+    );
 
-    pages_dict.get("Kids")
-        .and_then(Object::as_array)
-        .ok_or(invalid("Couldn’t find ‘Kids’ key"))?;
+    pages_dict.set(
+        "Kids",
+        Object::Array(
+            generate_pages(&mut doc, &pp, &in_pages)
+                .map(Object::Reference)
+                .collect()
+        ),
+    );
 
     Ok(())
 }
 
-fn pages_location(doc: &Document) -> Option<ObjectId> {
+fn pages_location(doc: &Document) -> Option<&Dictionary> {
     doc.catalog()
         .and_then(|cat| cat.get("Pages"))
         .and_then(Object::as_reference)
+        .and_then(|x| doc.get_object(x))
+        .and_then(Object::as_dict)
 }
 
 pub fn nonzero_error() -> io::Error {
