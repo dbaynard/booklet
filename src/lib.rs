@@ -28,14 +28,15 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
         .ok_or(nonzero_error())?;
 
     // TODO Need to get typechecker to enforce this is called
-    rewrite_pages(&mut doc, &pp)?;
-
-    let po = generate_pages(&mut doc, &pp, &in_pages)?;
+    rewrite_pages(&mut doc, &pp, &in_pages)?;
 
     Ok(())
 }
 
-fn rewrite_pages(doc: &mut Document, pp: &PageProps) -> Result<(), io::Error> {
+fn rewrite_pages(doc: &mut Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
+    //TODO Reference counting?
+    //let po = generate_pages(&mut doc, &pp, &in_pages);
+
     let pages_loc = pages_location(&doc)
         .ok_or(invalid("Couldn’t find ‘Pages’ location"))?;
 
@@ -52,10 +53,6 @@ fn rewrite_pages(doc: &mut Document, pp: &PageProps) -> Result<(), io::Error> {
 
     pages_dict.get("Kids")
         .and_then(Object::as_array)
-        .map(|v| v.iter()
-            .filter_map(Object::as_reference)
-            .zip((1..))
-             )
         .ok_or(invalid("Couldn’t find ‘Kids’ key"))?;
 
     Ok(())
@@ -75,8 +72,13 @@ fn invalid(err: &str) -> io::Error {
     io::Error::new(InvalidData, err)
 }
 
-fn generate_pages(doc: &mut Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
-    pp.print_order().map(|original_page| match original_page {
+fn generate_pages<'a>(
+    doc: &'a mut Document,
+    pp: &'a PageProps,
+    in_pages: &'a PagesInfo,
+    ) -> Box<Iterator<Item=ObjectId> + 'a>
+{
+    let f = pp.print_order().filter_map(move |original_page| match original_page {
         None => {
             in_pages.get(&1)
                 .and_then(|&x| doc.get_object(x))
@@ -91,5 +93,5 @@ fn generate_pages(doc: &mut Document, pp: &PageProps, in_pages: &PagesInfo) -> R
         },
     });
 
-    Ok(())
+    Box::new(f)
 }
