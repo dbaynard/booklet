@@ -9,7 +9,7 @@ extern crate num;
 extern crate num_derive;
 
 use lopdf::Document;
-use lopdf::Object;
+use lopdf::{Object,ObjectId};
 use lopdf::Dictionary;
 use std::io;
 use std::io::ErrorKind::*;
@@ -19,11 +19,14 @@ pub use reorder::*;
 
 pub fn reorder(infile: &str) -> Result<(), io::Error> {
     let mut doc = Document::load(infile)?;
-    let mut in_pages = doc.get_pages();
+
+    let pages = pages_location(&doc)
+        .ok_or(invalid("Couldn’t find ‘Pages’"))?;
+
+    let in_pages = doc.get_pages();
 
     let ps = NonZero::new(in_pages.len() as u32)
         .ok_or(nonzeroError())?;
-
     let pp = PageProps::new(&ps);
     let po = pp.print_order().map(|original_page| match original_page {
         None => {
@@ -43,6 +46,16 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
+fn pages_location(doc: &Document) -> Option<ObjectId> {
+    doc.catalog()
+        .and_then(|cat| cat.get("Pages"))
+        .and_then(Object::as_reference)
+}
+
 pub fn nonzeroError() -> io::Error {
     io::Error::new(InvalidInput, "Need nonzero document length")
+}
+
+fn invalid(err: &str) -> io::Error {
+    io::Error::new(InvalidData, err)
 }
