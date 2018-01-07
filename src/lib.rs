@@ -30,12 +30,22 @@ pub fn reorder<P>(infile: P, outfile: P) -> io::Result<File>
         .map(|x| PageProps::new(&x))
         .ok_or(nonzero_error())?;
 
-    rewrite_pages(doc, &pp, &in_pages)?;
+    rewrite_pages(&mut doc, &pp, &in_pages)?;
 
     doc.save(outfile)
 }
 
-fn rewrite_pages(mut doc: Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
+fn rewrite_pages(
+    mut doc: &mut Document,
+    pp: &PageProps,
+    in_pages: &PagesInfo,
+    ) -> io::Result<()>
+{
+    let new_pages = Object::Array(
+        generate_pages(&mut doc, &pp, &in_pages)
+        .map(Object::Reference)
+        .collect()
+        );
 
     let mut pages_dict = pages_location(&doc)
         .ok_or(invalid("Couldn’t find ‘Pages’ dictionary"))?;
@@ -47,11 +57,7 @@ fn rewrite_pages(mut doc: Document, pp: &PageProps, in_pages: &PagesInfo) -> Res
 
     pages_dict.set(
         "Kids",
-        Object::Array(
-            generate_pages(&mut doc, &pp, &in_pages)
-                .map(Object::Reference)
-                .collect()
-        ),
+        new_pages,
     );
 
     Ok(())
