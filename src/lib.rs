@@ -17,6 +17,8 @@ use std::io::ErrorKind::*;
 pub mod reorder;
 pub use reorder::*;
 
+type PagesInfo = std::collections::BTreeMap<u32, ObjectId>;
+
 pub fn reorder(infile: &str) -> Result<(), io::Error> {
     let mut doc = Document::load(infile)?;
 
@@ -28,20 +30,7 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     // TODO Need to get typechecker to enforce this is called
     rewrite_pages(&mut doc, &pp)?;
 
-    let po = pp.print_order().map(|original_page| match original_page {
-        None => {
-            in_pages.get(&1)
-                .and_then(|&x| doc.get_object(x))
-                .and_then(Object::as_dict)
-                .map(Dictionary::clone)
-                .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
-                .map(|blank| doc.add_object(blank))
-        },
-        Some(p) => {
-            in_pages.get(&p)
-                .map(|x| *x)
-        },
-    });
+    let po = generate_pages(&mut doc, &pp, &in_pages)?;
 
     Ok(())
 }
@@ -84,4 +73,23 @@ pub fn nonzeroError() -> io::Error {
 
 fn invalid(err: &str) -> io::Error {
     io::Error::new(InvalidData, err)
+}
+
+fn generate_pages(doc: &mut Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
+    pp.print_order().map(|original_page| match original_page {
+        None => {
+            in_pages.get(&1)
+                .and_then(|&x| doc.get_object(x))
+                .and_then(Object::as_dict)
+                .map(Dictionary::clone)
+                .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
+                .map(|blank| doc.add_object(blank))
+        },
+        Some(p) => {
+            in_pages.get(&p)
+                .map(|x| *x)
+        },
+    });
+
+    Ok(())
 }
