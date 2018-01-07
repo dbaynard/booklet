@@ -16,5 +16,7 @@ fn test_pages() -> Result<(), io::Error> {
     let po = pp.print_order();
 
     println!("{:?}", po.collect::<Vec<_>>());
-    reorder("test.pdf")
+    reorder("test.pdf", "test-out.pdf")?;
+
+    Ok(())
 }

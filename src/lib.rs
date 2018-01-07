@@ -13,13 +13,16 @@ use lopdf::{Object,ObjectId};
 use lopdf::Dictionary;
 use std::io;
 use std::io::ErrorKind::*;
+use std::fs::File;
 
 pub mod reorder;
 pub use reorder::*;
 
 type PagesInfo = std::collections::BTreeMap<u32, ObjectId>;
 
-pub fn reorder(infile: &str) -> Result<(), io::Error> {
+pub fn reorder<P>(infile: P, outfile: P) -> io::Result<File>
+    where P: AsRef<std::path::Path>
+{
     let mut doc = Document::load(infile)?;
 
     let in_pages = doc.get_pages();
@@ -29,7 +32,7 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
 
     rewrite_pages(doc, &pp, &in_pages)?;
 
-    Ok(())
+    doc.save(outfile)
 }
 
 fn rewrite_pages(mut doc: Document, pp: &PageProps, in_pages: &PagesInfo) -> Result<(), io::Error> {
