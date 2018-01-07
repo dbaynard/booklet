@@ -25,7 +25,7 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     let in_pages = doc.get_pages();
     let pp = NonZero::new(in_pages.len() as u32)
         .map(|x| PageProps::new(&x))
-        .ok_or(nonzeroError())?;
+        .ok_or(nonzero_error())?;
 
     // TODO Need to get typechecker to enforce this is called
     rewrite_pages(&mut doc, &pp)?;
@@ -67,7 +67,7 @@ fn pages_location(doc: &Document) -> Option<ObjectId> {
         .and_then(Object::as_reference)
 }
 
-pub fn nonzeroError() -> io::Error {
+pub fn nonzero_error() -> io::Error {
     io::Error::new(InvalidInput, "Need nonzero document length")
 }
 
