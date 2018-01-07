@@ -36,31 +36,50 @@ pub fn reorder<P>(infile: P, outfile: P) -> io::Result<File>
 }
 
 fn rewrite_pages(
-    mut doc: &mut Document,
+    doc: &mut Document,
     pp: &PageProps,
     in_pages: &PagesInfo,
     ) -> io::Result<()>
 {
     let new_pages = Object::Array(
-        generate_pages(&mut doc, &pp, &in_pages)
+        generate_pages(doc, &pp, &in_pages)
         .map(Object::Reference)
         .collect()
         );
 
-    let mut pages_dict = pages_location(&doc)
+    println!("{:?}", new_pages);
+
+    let pages_dict = pages_location(doc)
         .ok_or(invalid("Couldn’t find ‘Pages’ dictionary"))?;
 
-    pages_dict.set(
-        "Count",
-        Object::Integer(pp.new_pages() as i64),
-    );
+    println!("{:?}", pages_dict);
 
-    pages_dict.set(
-        "Kids",
-        new_pages,
-    );
+    let new_count = pp.new_pages() as i64;
+
+    set_pages_dict(pages_dict, new_count, &new_pages);
 
     Ok(())
+}
+
+fn set_pages_dict(
+    pages_dict: &mut Dictionary,
+    new_count: i64,
+    _new_pages: &Object,
+    )
+{
+    Dictionary::set(
+        pages_dict,
+        "Count",
+        Object::Integer(new_count),
+    );
+
+    /*
+     *Dictionary::set(
+     *    pages_dict,
+     *    "Kids",
+     *    new_pages,
+     *);
+     */
 }
 
 fn pages_location(doc: &Document) -> Option<&Dictionary> {
