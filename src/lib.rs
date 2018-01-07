@@ -27,28 +27,26 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     let pp = PageProps::new(&ps);
     let po = pp.print_order();
 
-    po.for_each(|r| {
-        match r {
-            None => {
-                if let Some(blank) = in_pages.get(&1)
-                    .and_then(|&x| doc.get_object(x))
-                    .and_then(Object::as_dict)
-                    .map(Dictionary::clone)
-                    .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
-                {
-                    let blank_id = doc.add_object(blank);
-                    println!("{:?}", blank_id);
-                    //blank_id
-                }
-            },
-            Some(r) => {
-                if let Some(&page_id) = in_pages.get(&r)
-                {
-                    println!("{:?}", page_id);
-                    //page_id
-                }
-            },
-        }
+    po.for_each(|original_page| match original_page {
+        None => {
+            if let Some(blank) = in_pages.get(&1)
+                .and_then(|&x| doc.get_object(x))
+                .and_then(Object::as_dict)
+                .map(Dictionary::clone)
+                .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
+            {
+                let blank_id = doc.add_object(blank);
+                println!("{:?}", blank_id);
+                //blank_id
+            }
+        },
+        Some(r) => {
+            if let Some(&page_id) = in_pages.get(&r)
+            {
+                println!("{:?}", page_id);
+                //page_id
+            }
+        },
     });
 
     Ok(())
