@@ -1,6 +1,4 @@
 use num::Unsigned;
-use num::Zero;
-use std::iter::Map;
 
 #[derive(Debug, FromPrimitive, ToPrimitive, Clone, Copy, PartialEq)]
 enum OnLeaf {
@@ -64,7 +62,6 @@ impl PageProps {
             Half::Former
         };
         next_page_no(
-            self.blanks,
             self.new_pages,
             half,
             page,
@@ -146,7 +143,7 @@ fn get_leaves(pages: &NonZero<u32>) -> u32 {
     (pages.ex() - 1) / 4 + 1
 }
 
-fn next_page_no(blanks: OnLeaf, pages: u32, half: Half, page: u32) -> u32 {
+fn next_page_no(pages: u32, half: Half, page: u32) -> u32 {
     use self::Half::*;
 
     match (half, page % 2) {

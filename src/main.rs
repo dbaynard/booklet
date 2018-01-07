@@ -1,6 +1,6 @@
 extern crate booklet;
 
-use booklet::{NonZero,PageProps,PageList};
+use booklet::{NonZero,PageProps};
 
 fn main() {
     match test_pages() {
