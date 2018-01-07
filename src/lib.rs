@@ -25,9 +25,7 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
         .ok_or(nonzeroError())?;
 
     let pp = PageProps::new(&ps);
-    let po = pp.print_order();
-
-    po.for_each(|original_page| match original_page {
+    let po = pp.print_order().map(|original_page| match original_page {
         None => {
             if let Some(blank) = in_pages.get(&1)
                 .and_then(|&x| doc.get_object(x))
@@ -36,15 +34,17 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
                 .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
             {
                 let blank_id = doc.add_object(blank);
-                println!("{:?}", blank_id);
-                //blank_id
+                blank_id
+            } else {
+                panic!("Should be a valid id");
             }
         },
-        Some(r) => {
-            if let Some(&page_id) = in_pages.get(&r)
+        Some(p) => {
+            if let Some(&page_id) = in_pages.get(&p)
             {
-                println!("{:?}", page_id);
-                //page_id
+                page_id
+            } else {
+                panic!("Should be a valid id");
             }
         },
     });
