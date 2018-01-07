@@ -27,25 +27,16 @@ pub fn reorder(infile: &str) -> Result<(), io::Error> {
     let pp = PageProps::new(&ps);
     let po = pp.print_order().map(|original_page| match original_page {
         None => {
-            if let Some(blank) = in_pages.get(&1)
+            in_pages.get(&1)
                 .and_then(|&x| doc.get_object(x))
                 .and_then(Object::as_dict)
                 .map(Dictionary::clone)
                 .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
-            {
-                let blank_id = doc.add_object(blank);
-                blank_id
-            } else {
-                panic!("Should be a valid id");
-            }
+                .map(|blank| doc.add_object(blank))
         },
         Some(p) => {
-            if let Some(&page_id) = in_pages.get(&p)
-            {
-                page_id
-            } else {
-                panic!("Should be a valid id");
-            }
+            in_pages.get(&p)
+                .map(|x| *x)
         },
     });
 
