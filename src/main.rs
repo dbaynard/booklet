@@ -1,13 +1,16 @@
+/// The booklet library contains most of the code
 extern crate booklet;
+use booklet::*;
 
+/// Argument parsing uses `structopt`
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
 
-use booklet::*;
 use std::io;
 
+/// # Main functions
 fn main() {
     let opt = Opt::from_args();
 
@@ -23,6 +26,7 @@ fn booklet(opt: Opt) -> io::Result<()> {
     Ok(())
 }
 
+/// # Options
 #[derive(StructOpt)]
 struct Opt {
     /// Input file, if present (otherwise stdin)
