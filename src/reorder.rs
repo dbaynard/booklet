@@ -72,6 +72,10 @@ impl PageProps {
     {
         PageList::new(self).print_order()
     }
+
+    pub fn new_pages(&self) -> u32 {
+        self.new_pages
+    }
 }
 
 #[derive(Debug)]

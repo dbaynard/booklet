@@ -1,19 +1,33 @@
 extern crate booklet;
 
-use booklet::{NonZero,PageProps};
+extern crate structopt;
+#[macro_use]
+extern crate structopt_derive;
+use structopt::StructOpt;
+
+use booklet::*;
+use std::io;
 
 fn main() {
-    match test_pages() {
+    let opt = Opt::from_args();
+
+    match booklet(opt) {
         Ok(_) => (),
         Err(e) => println!("{}", e),
     }
 }
 
-fn test_pages() -> Result<(), &'static str> {
-    let ps = NonZero::new(19).ok_or("Is zero")?;
-    let pp = PageProps::new(&ps);
-    let po = pp.print_order();
+fn booklet(opt: Opt) -> io::Result<()> {
+    reorder(opt.input, opt.output)?;
 
-    println!("{:?}", po.collect::<Vec<_>>());
     Ok(())
+}
+
+#[derive(StructOpt)]
+#[structopt(about="Rearrange pdf pages for booklet printing")]
+struct Opt {
+    /// Input file, if present (otherwise stdin)
+    input: Option<String>,
+    /// Output file, if present (otherwise stdout)
+    output: Option<String>,
 }

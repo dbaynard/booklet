@@ -8,7 +8,8 @@ extern crate num;
 #[macro_use]
 extern crate num_derive;
 
-use lopdf::Document;
-
 pub mod reorder;
 pub use reorder::*;
+
+pub mod rearrange;
+pub use rearrange::*;
