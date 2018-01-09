@@ -10,7 +10,7 @@ pub trait GetObjectMut {
     fn get_object_mut(&mut self, id: ObjectId) -> Option<&mut Object>;
 }
 
-/// The original (working) implementation was very similar to that of `get_object` and the changes
+/// This (working) implementation is very similar to that of `get_object` and the changes
 /// can be applied upstream. It may be possible to use the `Borrow` trait to write a single
 /// function which can handle both mutable and immutable references.
 impl GetObjectMut for Document {
