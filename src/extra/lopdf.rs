@@ -1,10 +1,18 @@
+//! Add functionality missing from `lopdf`.
+
 use lopdf::Document;
 use lopdf::{Object,ObjectId};
 
+/// It is not possible to access objects mutably through the provided methods on `Document`. Rather
+/// than doing so using the struct fields and `BTreeMap` functions, this trait adds a new method
+/// which is similar to `get_object`.
 pub trait GetObjectMut {
     fn get_object_mut(&mut self, id: ObjectId) -> Option<&mut Object>;
 }
 
+/// The original (working) implementation was very similar to that of `get_object` and the changes
+/// can be applied upstream. It may be possible to use the `Borrow` trait to write a single
+/// function which can handle both mutable and immutable references.
 impl GetObjectMut for Document {
     /// Get mutable object by object id, will recursively dereference a referenced object.
     fn get_object_mut(&mut self, id: ObjectId) -> Option<&mut Object> {

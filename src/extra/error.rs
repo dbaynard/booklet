@@ -1,3 +1,7 @@
+//! These helper functions reduce repetition when implementing errors.
+//!
+//! TODO Change from io::ErrorKind to make clear that ‘pure’ functions are actually pure.
+
 use std::io;
 use std::io::ErrorKind::*;
 
