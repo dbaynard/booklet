@@ -1,5 +1,10 @@
-use num::Unsigned;
+//! Calculate the order of pages for printing a pdf as a booklet
+//!
+//! A booklet prints 4 A4 pages in A5, two on each side (2-up).
+//!
+//! TODO Reverse the calculation (also enables property tests).
 
+/// How many pages are blank on the final leaf?
 #[derive(Debug, FromPrimitive, ToPrimitive, Clone, Copy, PartialEq)]
 enum OnLeaf {
     Nil,
@@ -9,6 +14,9 @@ enum OnLeaf {
 }
 
 impl OnLeaf {
+    /// TODO Link to quickcheck test
+    ///
+    /// Note: the modulo operations are safe for unsigned ints
     fn new(x: u32) -> OnLeaf {
         use num::FromPrimitive;
 
@@ -17,21 +25,34 @@ impl OnLeaf {
     }
 }
 
+/// Into which half of the document does a given page fall?
+///
+/// The half is important for directing the subsequent page.
 #[derive(Debug)]
 enum Half {
     Former,
     Latter,
 }
+
+/// The set of page properties
 #[derive(Debug)]
 pub struct PageProps {
+    /// How many sheets of paper.
     leaves: u32,
+    /// How many pages of content.
     pages: u32,
+    /// How many pages total, including blanks.
     new_pages: u32,
+    /// Which is the first page for the rearranged output.
     start_page: u32,
+    /// How many blank pages added at the end.
+    ///
+    /// TODO This is currently unused.
     blanks: OnLeaf,
 }
 
 impl PageProps {
+    /// This is only valid for a positive integer so the input is restricted to that.
     pub fn new(pgs: &NonZero<u32>) -> PageProps {
         let pages = *pgs.ex();
 
@@ -55,6 +76,7 @@ impl PageProps {
         }
     }
 
+    /// Given an original page number, what original page is next?
     pub fn next_page_no(&self, page: u32) -> u32 {
         let half = if page > self.start_page {
             Half::Latter
@@ -68,26 +90,66 @@ impl PageProps {
             )
     }
 
+    /// Produce an iterator for the new order of original page numbers
+    ///
+    /// No actual need for boxes, but this can't be implemented yet
+    ///
+    /// ```
+    /// pub fn print_order(&self) -> impl Iterator<Item = Option<u32>>
+    /// ```
     pub fn print_order<'a>(&'a self) -> Box<Iterator<Item = Option<u32>> + 'a>
     {
         PageList::new(self).print_order()
     }
 
+    /// Rather than making the `new_pages` field public, provide the same value with a function.
     pub fn new_pages(&self) -> u32 {
         self.new_pages
     }
 }
 
+/// TODO Enforce difference between pages and leaves with newtypes
+/// TODO Link to quickcheck
+fn get_leaves(pages: &NonZero<u32>) -> u32 {
+    (pages.ex() - 1) / 4 + 1
+}
+
+/// This (private) function implements the logic of the corresponding `next_page_no` method.
+///
+/// # Errors
+///
+/// The exhaustivity of the pattern matches cannot be checked by the compiler, hence the panic.
+fn next_page_no(pages: u32, half: Half, page: u32) -> u32 {
+    use self::Half::*;
+
+    match (half, page % 2) {
+        (Former,0) => pages - page + 1,
+        (Latter,0) => pages - page + 1,
+        (Former,1) => page - 1,
+        (Latter,1) => page + 1,
+        (_,_) => panic!("The impossible has happened.")
+    }
+}
+
+/// This type is required to iterate through the page numbers
 #[derive(Debug)]
 pub struct PageList<'a>(Option<u32>, &'a PageProps);
 
 impl<'a> PageList<'a> {
+    /// The start state has no page number, meaning the iterator returns the first page with the
+    /// first iteration.
     pub fn new(pp: &'a PageProps) -> PageList<'a> {
         PageList(None, pp)
     }
 
-    // No need for boxes, but can't be implemented yet
-    //pub fn print_order<F>(self) -> impl Iterator<Item = Option<u32>>
+    /// Any numbers outside the original page number list correspond to blank pages, represented
+    /// here as `None`.
+    ///
+    /// No actual need for boxes, but this can't be implemented yet
+    ///
+    /// ```
+    /// pub fn print_order(self) -> impl Iterator<Item = Option<u32>>
+    /// ```
     pub fn print_order(self) -> Box<Iterator<Item = Option<u32>> + 'a>
     {
         let p = &self.1.pages;
@@ -106,6 +168,7 @@ impl<'a> PageList<'a> {
 impl<'a> Iterator for PageList<'a> {
     type Item = u32;
 
+    /// Set and return the same state
     fn next(&mut self) -> Option<u32> {
         match self.0 {
             None => {
@@ -126,6 +189,11 @@ impl<'a> Iterator for PageList<'a> {
     }
 }
 
+// TODO Move following to own module
+use num::Unsigned;
+
+/// Compiler guaranteed positive integers
+// TODO Implement Copy?
 #[derive(Debug, PartialEq)]
 pub struct NonZero<T>(T);
 
@@ -140,22 +208,6 @@ impl<T: Unsigned> NonZero<T> {
 
     fn ex(&self) -> &T {
         &self.0
-    }
-}
-
-fn get_leaves(pages: &NonZero<u32>) -> u32 {
-    (pages.ex() - 1) / 4 + 1
-}
-
-fn next_page_no(pages: u32, half: Half, page: u32) -> u32 {
-    use self::Half::*;
-
-    match (half, page % 2) {
-        (Former,0) => pages - page + 1,
-        (Latter,0) => pages - page + 1,
-        (Former,1) => page - 1,
-        (Latter,1) => page + 1,
-        (_,_) => panic!("The impossible has happened.")
     }
 }
 

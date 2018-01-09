@@ -1,36 +1,50 @@
+//! Rearrange pages within a pdf
+
 use std::io;
 use std::path::Path;
-use std::collections::BTreeMap;
+use extra::error::*;
 
+/// `lopdf` handles the pdf processing
 use lopdf::Document;
 use lopdf::{Object,ObjectId};
 use lopdf::Dictionary;
-
-use reorder::*;
-
+use std::collections::BTreeMap;
 use extra::lopdf::GetObjectMut;
-use extra::error::*;
 
+/// The page ordering
+use calculate::*;
+
+/// Pages are retrieved as a map
 type PagesInfo = BTreeMap<u32, ObjectId>;
 
+/// Rearrange the pages
+///
+/// TODO rename to rearrange
+///
+/// - infile: If a path, use the file, otherwise use stdin
+/// - outfile: If a path, use the file, otherwise use stdout
 pub fn reorder<P>(
     infile: Option<P>,
     outfile: Option<P>
     ) -> io::Result<()>
     where P: AsRef<Path>
 {
+    /// Load the input pdf
     let mut doc = match infile {
         Some(file_name) => Document::load(file_name),
         None => Document::load_from(io::stdin()),
     }?;
 
+    /// Calculate page numbers and properties
     let in_pages = doc.get_pages();
     let pp = NonZero::new(in_pages.len() as u32)
         .map(|x| PageProps::new(&x))
         .ok_or(nonzero_error())?;
 
+    /// Rearrange the pages
     rewrite_pages(&mut doc, &pp, &in_pages)?;
 
+    /// Write the output pdf
     match outfile {
         Some(file_name) => {
             doc.save(file_name)?;
@@ -41,12 +55,16 @@ pub fn reorder<P>(
 
 }
 
+/// Generate new pages, insert and rearrange the resulting pdf pages.
 fn rewrite_pages(
     doc: &mut Document,
     pp: &PageProps,
     in_pages: &PagesInfo,
     ) -> io::Result<()>
 {
+    /// Return a vector, rather than an iterator, to allow subsequent mutation of the document.
+    ///
+    /// TODO figure out how to return an iterator without comprimising this.
     let new_pages = generate_pages(doc, &pp, &in_pages)
         .map(Object::Reference)
         .collect();
@@ -60,6 +78,7 @@ fn rewrite_pages(
     Ok(())
 }
 
+/// Actually mutate the element listing pages of the pdf.
 fn set_pages_dict(
     pages_dict: &mut Dictionary,
     new_count: i64,
@@ -77,8 +96,12 @@ fn set_pages_dict(
     );
 }
 
+/// Return a mutable reference to the element of the pdf corresponding to the page ordering.
+///
+/// TODO write using `Borrow` to be polymorphic in reference mutability?
 fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
 {
+    /// TODO it should be possible to pass the ‘Pages’ reference to get_object_mut directly
     let pages = doc.catalog()             // Option<&Dictionary>
         .and_then(|cat| cat.get("Pages")) // Option<&Object>
         .and_then(Object::as_reference)   // Option<&ObjectId>
@@ -89,6 +112,14 @@ fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
         .ok_or(invalid("Can't find Pages dictionary"))
 }
 
+/// Process the list of pages and add any required blanks
+///
+/// TODO now that I get what `move` does is it possible to remove it?
+/// Note: No actual need for boxes, but this can't be implemented yet
+///
+/// ```
+/// pub fn print_order(self) -> impl Iterator<Item = Option<u32>>
+/// ```
 fn generate_pages<'a>(
     doc: &'a mut Document,
     pp: &'a PageProps,

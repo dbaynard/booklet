@@ -2,6 +2,15 @@
 name = "booklet"
 version = "0.1.0"
 authors = ["David Baynard <davidbaynard@gmail.com>"]
+description = "Rearrange pdf pages for booklet printing"
+homepage = "https://github.com/dbaynard/booklet"
+repository = "https://github.com/dbaynard/booklet"
+readme = "README.md"
+license = "BSD2"
+
+[[bin]]
+name = "pdfbooklet"
+path = "src/main.rs"
 
 [dependencies]
 lopdf = "0.14.1"
