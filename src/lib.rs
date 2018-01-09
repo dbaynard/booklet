@@ -41,11 +41,9 @@ fn rewrite_pages(
     in_pages: &PagesInfo,
     ) -> io::Result<()>
 {
-    let new_pages = Object::Array(
-        generate_pages(doc, &pp, &in_pages)
+    let new_pages = generate_pages(doc, &pp, &in_pages)
         .map(Object::Reference)
-        .collect()
-        );
+        .collect();
 
     println!("{:?}", new_pages);
 
@@ -63,12 +61,12 @@ fn rewrite_pages(
 fn set_pages_dict(
     pages_dict: &mut Dictionary,
     new_count: i64,
-    new_pages: Object,
+    new_pages: Vec<Object>,
     )
 {
     pages_dict.set(
         "Kids",
-        new_pages,
+         Object::Array(new_pages),
     );
 
     pages_dict.set(
