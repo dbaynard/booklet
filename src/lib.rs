@@ -55,7 +55,7 @@ fn rewrite_pages(
 
     let new_count = pp.new_pages() as i64;
 
-    set_pages_dict(pages_dict, new_count, &new_pages);
+    set_pages_dict(pages_dict, new_count, new_pages);
 
     Ok(())
 }
@@ -63,22 +63,18 @@ fn rewrite_pages(
 fn set_pages_dict(
     pages_dict: &mut Dictionary,
     new_count: i64,
-    _new_pages: &Object,
+    new_pages: Object,
     )
 {
-    Dictionary::set(
-        pages_dict,
+    pages_dict.set(
+        "Kids",
+        new_pages,
+    );
+
+    pages_dict.set(
         "Count",
         Object::Integer(new_count),
     );
-
-    /*
-     *Dictionary::set(
-     *    pages_dict,
-     *    "Kids",
-     *    new_pages,
-     *);
-     */
 }
 
 fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
