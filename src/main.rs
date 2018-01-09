@@ -4,14 +4,12 @@ use booklet::*;
 use std::io;
 
 fn main() {
-    match test_pages() {
+    match booklet() {
         Ok(_) => (),
         Err(e) => println!("{}", e),
     }
 }
 
-fn test_pages() -> io::Result<()> {
-    reorder("test.pdf", "test-out.pdf")?;
-
+fn booklet() -> io::Result<()> {
     Ok(())
 }

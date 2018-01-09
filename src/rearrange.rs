@@ -132,3 +132,17 @@ fn generate_pages<'a>(
 
     Box::new(f)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[ignore]
+    /// This test requires the file test.pdf to be present.
+    fn test_reorder() {
+        let test_out = reorder("test.pdf", "test-out.pdf");
+
+        assert_eq!(true, test_out.is_ok())
+    }
+}
