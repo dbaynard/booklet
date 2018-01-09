@@ -1,6 +1,5 @@
 use std::io;
 use std::io::ErrorKind::*;
-use std::fs::File;
 use std::path::Path;
 use std::collections::BTreeMap;
 
@@ -12,10 +11,16 @@ use reorder::*;
 
 type PagesInfo = BTreeMap<u32, ObjectId>;
 
-pub fn reorder<P>(infile: P, outfile: P) -> io::Result<File>
+pub fn reorder<P>(
+    infile: Option<P>,
+    outfile: Option<P>
+    ) -> io::Result<()>
     where P: AsRef<Path>
 {
-    let mut doc = Document::load(infile)?;
+    let mut doc = match infile {
+        Some(file_name) => Document::load(file_name),
+        None => Document::load_from(io::stdin()),
+    }?;
 
     let in_pages = doc.get_pages();
     let pp = NonZero::new(in_pages.len() as u32)
@@ -24,7 +29,14 @@ pub fn reorder<P>(infile: P, outfile: P) -> io::Result<File>
 
     rewrite_pages(&mut doc, &pp, &in_pages)?;
 
-    doc.save(outfile)
+    match outfile {
+        Some(file_name) => {
+            doc.save(file_name)?;
+            Ok(())
+        },
+        None => doc.save_to(&mut io::stdout()),
+    }
+
 }
 
 fn rewrite_pages(
@@ -141,7 +153,10 @@ mod tests {
     #[ignore]
     /// This test requires the file test.pdf to be present.
     fn test_reorder() {
-        let test_out = reorder("test.pdf", "test-out.pdf");
+        let test_out = reorder(
+            Some("test.pdf"),
+            Some("test-out.pdf"),
+        );
 
         assert_eq!(true, test_out.is_ok())
     }

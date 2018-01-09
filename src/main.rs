@@ -9,13 +9,17 @@ use booklet::*;
 use std::io;
 
 fn main() {
-    match booklet() {
+    let opt = Opt::from_args();
+
+    match booklet(opt) {
         Ok(_) => (),
         Err(e) => println!("{}", e),
     }
 }
 
-fn booklet() -> io::Result<()> {
+fn booklet(opt: Opt) -> io::Result<()> {
+    reorder(opt.input, opt.output)?;
+
     Ok(())
 }
 
