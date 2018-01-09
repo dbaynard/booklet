@@ -10,12 +10,7 @@ fn main() {
     }
 }
 
-fn test_pages() -> Result<(), io::Error> {
-    let ps = NonZero::new(27).ok_or(nonzero_error())?;
-    let pp = PageProps::new(&ps);
-    let po = pp.print_order();
-
-    println!("{:?}", po.collect::<Vec<_>>());
+fn test_pages() -> io::Result<()> {
     reorder("test.pdf", "test-out.pdf")?;
 
     Ok(())

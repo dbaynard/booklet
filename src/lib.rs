@@ -45,11 +45,7 @@ fn rewrite_pages(
         .map(Object::Reference)
         .collect();
 
-    println!("{:?}", new_pages);
-
     let pages_dict = pages_location(doc)?;
-
-    println!("{:?}", pages_dict);
 
     let new_count = pp.new_pages() as i64;
 
