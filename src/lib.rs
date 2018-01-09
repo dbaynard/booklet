@@ -49,8 +49,7 @@ fn rewrite_pages(
 
     println!("{:?}", new_pages);
 
-    let pages_dict = pages_location(doc)
-        .ok_or(invalid("Couldn’t find ‘Pages’ dictionary"))?;
+    let pages_dict = pages_location(doc)?;
 
     println!("{:?}", pages_dict);
 
@@ -82,12 +81,39 @@ fn set_pages_dict(
      */
 }
 
-fn pages_location(doc: &Document) -> Option<&Dictionary> {
-    doc.catalog()
-        .and_then(|cat| cat.get("Pages"))
-        .and_then(Object::as_reference)
-        .and_then(|x| doc.get_object(x))
-        .and_then(Object::as_dict)
+fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
+{
+    let pages = doc.catalog()             // Option<&Dictionary>
+        .and_then(|cat| cat.get("Pages")) // Option<&Object>
+        .and_then(Object::as_reference)   // Option<&ObjectId>
+        .ok_or(invalid("Can't find Pages reference"))?;
+
+    doc.get_object_mut(pages)          // Option<&Object>
+        .and_then(Object::as_dict_mut) // Option<&mut Dictionary>
+        .ok_or(invalid("Can't find Pages dictionary"))
+}
+
+trait GetObjectMut {
+    fn get_object_mut(&mut self, id: ObjectId) -> Option<&mut Object>;
+}
+
+impl GetObjectMut for Document {
+    /// Get mutable object by object id, will recursively dereference a referenced object.
+    fn get_object_mut(&mut self, id: ObjectId) -> Option<&mut Object> {
+        let is_ref;
+
+        if let Some(object) = self.objects.get(&id) {
+            is_ref = object.as_reference();
+        } else {
+            return None
+        }
+
+        if let Some(id) = is_ref {
+            return self.get_object_mut(id);
+        } else {
+            return self.objects.get_mut(&id);
+        }
+    }
 }
 
 pub fn nonzero_error() -> io::Error {
