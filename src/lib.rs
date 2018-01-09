@@ -13,3 +13,9 @@ pub use reorder::*;
 
 pub mod rearrange;
 pub use rearrange::*;
+
+mod extra {
+    pub mod error;
+
+    pub mod lopdf;
+}
