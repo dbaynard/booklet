@@ -24,7 +24,6 @@ fn booklet(opt: Opt) -> io::Result<()> {
 }
 
 #[derive(StructOpt)]
-#[structopt(about="Rearrange pdf pages for booklet printing")]
 struct Opt {
     /// Input file, if present (otherwise stdin)
     input: Option<String>,
