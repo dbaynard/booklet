@@ -126,7 +126,10 @@ fn generate_pages<'a>(
                 .and_then(|&x| doc.get_object(x))
                 .and_then(Object::as_dict)
                 .map(Dictionary::clone)
-                .and_then(|mut x| Dictionary::remove(&mut x, "Contents"))
+                .map(|mut x| {
+                    x.remove("Contents");
+                    x
+                })
                 .map(|blank| doc.add_object(blank))
         },
         Some(p) => {
