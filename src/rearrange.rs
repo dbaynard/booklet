@@ -6,7 +6,7 @@ use lopdf::Document;
 use lopdf::{Object,ObjectId};
 use lopdf::Dictionary;
 
-use reorder::*;
+use calculate::*;
 
 use extra::lopdf::GetObjectMut;
 use extra::error::*;
