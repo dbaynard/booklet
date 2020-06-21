@@ -91,13 +91,7 @@ impl PageProps {
     }
 
     /// Produce an iterator for the new order of original page numbers
-    ///
-    /// No actual need for boxes, but this can't be implemented yet
-    ///
-    /// ```
-    /// pub fn print_order(&self) -> impl Iterator<Item = Option<u32>>
-    /// ```
-    pub fn print_order<'a>(&'a self) -> Box<Iterator<Item = Option<u32>> + 'a>
+    pub fn print_order<'a>(&'a self) -> impl Iterator<Item = Option<u32>> + 'a
     {
         PageList::new(self).print_order()
     }
@@ -144,13 +138,7 @@ impl<'a> PageList<'a> {
 
     /// Any numbers outside the original page number list correspond to blank pages, represented
     /// here as `None`.
-    ///
-    /// No actual need for boxes, but this can't be implemented yet
-    ///
-    /// ```
-    /// pub fn print_order(self) -> impl Iterator<Item = Option<u32>>
-    /// ```
-    pub fn print_order(self) -> Box<Iterator<Item = Option<u32>> + 'a>
+    pub fn print_order(self) -> impl Iterator<Item = Option<u32>> + 'a
     {
         let p = &self.1.pages;
         let f = self.map(move |x| {

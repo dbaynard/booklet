@@ -5,11 +5,11 @@ use std::path::Path;
 use extra::error::*;
 
 /// `lopdf` handles the pdf processing
+use lopdf::Error;
 use lopdf::Document;
 use lopdf::{Object,ObjectId};
 use lopdf::Dictionary;
 use std::collections::BTreeMap;
-use extra::lopdf::GetObjectMut;
 
 /// The page ordering
 use calculate::*;
@@ -26,31 +26,31 @@ type PagesInfo = BTreeMap<u32, ObjectId>;
 pub fn reorder<P>(
     infile: Option<P>,
     outfile: Option<P>
-    ) -> io::Result<()>
+    ) -> lopdf::Result<()>
     where P: AsRef<Path>
 {
-    /// Load the input pdf
+    // Load the input pdf
     let mut doc = match infile {
         Some(file_name) => Document::load(file_name),
         None => Document::load_from(io::stdin()),
     }?;
 
-    /// Calculate page numbers and properties
+    // Calculate page numbers and properties
     let in_pages = doc.get_pages();
     let pp = NonZero::new(in_pages.len() as u32)
         .map(|x| PageProps::new(&x))
         .ok_or(nonzero_error())?;
 
-    /// Rearrange the pages
+    // Rearrange the pages
     rewrite_pages(&mut doc, &pp, &in_pages)?;
 
-    /// Write the output pdf
+    // Write the output pdf
     match outfile {
         Some(file_name) => {
-            doc.save(file_name)?;
+            doc.save(file_name).map_err(Error::from)?;
             Ok(())
         },
-        None => doc.save_to(&mut io::stdout()),
+        None => doc.save_to(&mut io::stdout()).map_err(Error::from),
     }
 
 }
@@ -60,11 +60,11 @@ fn rewrite_pages(
     doc: &mut Document,
     pp: &PageProps,
     in_pages: &PagesInfo,
-    ) -> io::Result<()>
+    ) -> lopdf::Result<()>
 {
-    /// Return a vector, rather than an iterator, to allow subsequent mutation of the document.
-    ///
-    /// TODO figure out how to return an iterator without comprimising this.
+    // Return a vector, rather than an iterator, to allow subsequent mutation of the document.
+    //
+    // TODO figure out how to return an iterator without comprimising this.
     let new_pages = generate_pages(doc, &pp, &in_pages)
         .map(Object::Reference)
         .collect();
@@ -99,44 +99,38 @@ fn set_pages_dict(
 /// Return a mutable reference to the element of the pdf corresponding to the page ordering.
 ///
 /// TODO write using `Borrow` to be polymorphic in reference mutability?
-fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
+fn pages_location<'a>(doc: &'a mut Document) -> lopdf::Result<&'a mut Dictionary>
 {
-    /// TODO it should be possible to pass the ‘Pages’ reference to get_object_mut directly
-    let pages = doc.catalog()             // Option<&Dictionary>
-        .and_then(|cat| cat.get("Pages")) // Option<&Object>
-        .and_then(Object::as_reference)   // Option<&ObjectId>
-        .ok_or(invalid("Can't find Pages reference"))?;
+    // TODO it should be possible to pass the ‘Pages’ reference to get_object_mut directly
+    let pages = doc.catalog()              // Result<&Dictionary>
+        .and_then(|cat| cat.get(b"Pages")) // Result<&Object>
+        .and_then(Object::as_reference)?;  // Result<&ObjectId>
 
-    doc.get_object_mut(pages)          // Option<&Object>
-        .and_then(Object::as_dict_mut) // Option<&mut Dictionary>
-        .ok_or(invalid("Can't find Pages dictionary"))
+    doc.get_object_mut(pages)          // Result<&Object>
+        .and_then(Object::as_dict_mut) // Result<&mut Dictionary>
 }
 
 /// Process the list of pages and add any required blanks
 ///
 /// TODO now that I get what `move` does is it possible to remove it?
-/// Note: No actual need for boxes, but this can't be implemented yet
-///
-/// ```
-/// pub fn print_order(self) -> impl Iterator<Item = Option<u32>>
-/// ```
 fn generate_pages<'a>(
     doc: &'a mut Document,
     pp: &'a PageProps,
     in_pages: &'a PagesInfo,
-    ) -> Box<Iterator<Item=ObjectId> + 'a>
+    ) -> impl Iterator<Item=ObjectId> + 'a
 {
     let f = pp.print_order().filter_map(move |original_page| match original_page {
         None => {
-            in_pages.get(&1)
+            in_pages.get(&1).ok_or(Error::from(invalid("Couldn't get object")))
                 .and_then(|&x| doc.get_object(x))
                 .and_then(Object::as_dict)
                 .map(Dictionary::clone)
                 .map(|mut x| {
-                    x.remove("Contents");
+                    x.remove(b"Contents");
                     x
                 })
                 .map(|blank| doc.add_object(blank))
+                .ok()
         },
         Some(p) => {
             in_pages.get(&p)

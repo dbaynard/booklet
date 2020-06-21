@@ -4,11 +4,8 @@ use booklet::*;
 
 /// Argument parsing uses `structopt`
 extern crate structopt;
-#[macro_use]
 extern crate structopt_derive;
 use structopt::StructOpt;
-
-use std::io;
 
 /// # Main functions
 fn main() {
@@ -20,7 +17,7 @@ fn main() {
     }
 }
 
-fn booklet(opt: Opt) -> io::Result<()> {
+fn booklet(opt: Opt) -> lopdf::Result<()> {
     reorder(opt.input, opt.output)?;
 
     Ok(())
