@@ -29,22 +29,22 @@ pub fn reorder<P>(
     ) -> io::Result<()>
     where P: AsRef<Path>
 {
-    /// Load the input pdf
+    // Load the input pdf
     let mut doc = match infile {
         Some(file_name) => Document::load(file_name),
         None => Document::load_from(io::stdin()),
     }?;
 
-    /// Calculate page numbers and properties
+    // Calculate page numbers and properties
     let in_pages = doc.get_pages();
     let pp = NonZero::new(in_pages.len() as u32)
         .map(|x| PageProps::new(&x))
         .ok_or(nonzero_error())?;
 
-    /// Rearrange the pages
+    // Rearrange the pages
     rewrite_pages(&mut doc, &pp, &in_pages)?;
 
-    /// Write the output pdf
+    // Write the output pdf
     match outfile {
         Some(file_name) => {
             doc.save(file_name)?;
@@ -62,9 +62,9 @@ fn rewrite_pages(
     in_pages: &PagesInfo,
     ) -> io::Result<()>
 {
-    /// Return a vector, rather than an iterator, to allow subsequent mutation of the document.
-    ///
-    /// TODO figure out how to return an iterator without comprimising this.
+    // Return a vector, rather than an iterator, to allow subsequent mutation of the document.
+    //
+    // TODO figure out how to return an iterator without comprimising this.
     let new_pages = generate_pages(doc, &pp, &in_pages)
         .map(Object::Reference)
         .collect();
@@ -101,7 +101,7 @@ fn set_pages_dict(
 /// TODO write using `Borrow` to be polymorphic in reference mutability?
 fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
 {
-    /// TODO it should be possible to pass the ‘Pages’ reference to get_object_mut directly
+    // TODO it should be possible to pass the ‘Pages’ reference to get_object_mut directly
     let pages = doc.catalog()             // Option<&Dictionary>
         .and_then(|cat| cat.get("Pages")) // Option<&Object>
         .and_then(Object::as_reference)   // Option<&ObjectId>
