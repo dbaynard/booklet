@@ -115,16 +115,11 @@ fn pages_location<'a>(doc: &'a mut Document) -> io::Result<&'a mut Dictionary>
 /// Process the list of pages and add any required blanks
 ///
 /// TODO now that I get what `move` does is it possible to remove it?
-/// Note: No actual need for boxes, but this can't be implemented yet
-///
-/// ```
-/// pub fn print_order(self) -> impl Iterator<Item = Option<u32>>
-/// ```
 fn generate_pages<'a>(
     doc: &'a mut Document,
     pp: &'a PageProps,
     in_pages: &'a PagesInfo,
-    ) -> Box<Iterator<Item=ObjectId> + 'a>
+    ) -> impl Iterator<Item=ObjectId> + 'a
 {
     let f = pp.print_order().filter_map(move |original_page| match original_page {
         None => {
