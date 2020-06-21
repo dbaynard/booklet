@@ -43,7 +43,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "booklet"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lopdf 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

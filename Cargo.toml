@@ -1,7 +1,7 @@
 [package]
 name = "booklet"
-version = "0.1.0"
-authors = ["David Baynard <davidbaynard@gmail.com>"]
+version = "0.1.1"
+authors = ["David Baynard <rust@baynard.dev>"]
 description = "Rearrange pdf pages for booklet printing"
 homepage = "https://github.com/dbaynard/booklet"
 repository = "https://github.com/dbaynard/booklet"
