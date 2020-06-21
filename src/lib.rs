@@ -32,7 +32,4 @@ pub use rearrange::*;
 mod extra {
     /// Generate error values.
     pub mod error;
-
-    /// Add missing functionality to `lopdf`.
-    pub mod lopdf;
 }
