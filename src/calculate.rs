@@ -211,7 +211,7 @@ mod test_get_leaves {
                 Some(r) => r,
                 None => return TestResult::discard(),
             };
-            let z = 4 * get_leaves(&x) - y;
+            let z = get_leaves(&x).wrapping_mul(4).wrapping_sub(y);
             TestResult::from_bool(*x.ex() == z)
         }
     }
