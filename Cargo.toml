@@ -13,12 +13,11 @@ name = "pdfbooklet"
 path = "src/main.rs"
 
 [dependencies]
+clap = { version = "3.2.8", features = ["derive"] }
 lopdf = "0.27.0"
 num = "0.4.0"
 num-derive = "0.3.3"
 num-traits = "0.2.15"
-structopt = "0.3.26"
-structopt-derive = "0.4.18"
 
 [dev-dependencies]
 quickcheck = "1.0.3"
